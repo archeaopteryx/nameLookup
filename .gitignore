@@ -1,0 +1,12 @@
+
+.settings
+
+*.class
+*.classpath
+*.project
+*.xlsx
+
+*.log
+*.jar
+
+target
