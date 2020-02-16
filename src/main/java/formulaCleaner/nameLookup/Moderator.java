@@ -7,8 +7,8 @@ import javax.swing.JOptionPane;
 public class Moderator {
 	
 	public void run() {
+		
 		NameLookupGUI input = new NameLookupGUI();
-		System.out.println("here");
 		int skipRowsLook = input.get_skipRowsLook();
 		int skipRowsFile = input.get_skipRowsFile();
 		int nameInLook = input.get_nameInLook();
@@ -32,7 +32,21 @@ public class Moderator {
 			JOptionPane.showMessageDialog(null, "Could not determine which method to run. Closing.");
 			System.exit(0);
 		}
-		callMethod(lookTab, manuTab, fileTab);
+		char method = callMethod(lookTab, manuTab, fileTab);
+		
+		switch(method){
+			case 'L': 
+				new Lookup(skipRowsLook, nameInLook, lookFile);
+				break;
+			case 'M':
+				ManuUpdate.update(nameInManu, nameOutManu, casManu);
+				break;
+			case 'F': 
+				new FileUpdate(skipRowsFile, nameInFile, nameOutFile, casFile, sourceFile);
+				break;
+			default:
+				JOptionPane.showMessageDialog(null, "unknown method");
+		}
 	}
 	
 	private int checkLookTab(int skip, int nameIn, File file) {
@@ -56,16 +70,17 @@ public class Moderator {
 		return 1;
 	}
 	
-	private void callMethod(int look, int manu, int file) {
+	private char callMethod(int look, int manu, int file) {
 		if (look > 0) {
-			JOptionPane.showMessageDialog(null, "run lookup");
+			return 'L';
 		}
 		else if (manu > 0) {
-			JOptionPane.showMessageDialog(null, "run manual addition");
+			return 'M';
 		}
 		else if (file > 0) {
-			JOptionPane.showMessageDialog(null, "run file addition");
+			return 'F';
 		}
+		return ' ';
 	}
 	
 	public static void main(String[] args) {

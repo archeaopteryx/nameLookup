@@ -2,7 +2,7 @@ package formulaCleaner.nameLookup;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
+//import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.GroupLayout;
@@ -26,7 +26,7 @@ public class NameLookupGUI extends JPanel{
 	
 	private JTextField skipLook = new JTextField("1", 10);
 	private JTextField skipFile = new JTextField("1", 10);
-	private JTextField nameInLookField = new JTextField("B", 10);
+	private JTextField nameInLookField = new JTextField("A", 10);
 	private JTextField nameInManuField = new JTextField("", 20);
 	private JTextField nameInFileField = new JTextField("A", 10);
 	private JTextField nameOutManuField = new JTextField("",20);

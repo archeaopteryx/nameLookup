@@ -24,31 +24,22 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class Lookup 
 {
-	private int skipRows, nameInCol, sheetNum;//nameOutCol, casOutCol
+//	private int skipRows, nameInCol, sheetNum;//nameOutCol, casOutCol
 //	private File file;
-	private static final int N_BUCKETS = 100;
+//	private static final int N_BUCKETS = 100;
 	static final int NAME_INDEX = 0;
 	static final int CAS_INDEX = 1;
 	private final String OUT_DIR = System.getProperty("user.dir");
 	private final String IN_FILE = "fileIn";
 
-/*	public Lookup() {
-		this.skipRows = 1;
-		this.nameInCol = 0;
-		//this.nameOutCol = nameOutCol;
-		//this.casOutCol = casOutCol;
-		this.sheetNum = 0;
-		//this.file = "TEST_1.xlsx";
-		run();
-	}
-*/	
-	public void run() {
-		this.skipRows=1;
-		this.nameInCol=0;
-		this.sheetNum=0;
+	public Lookup(int skipRowsLook, int nameInLook, File lookFile) {
 		try {
-			ArrayList<String> nameInList = nameInList();
-			String[][] nameAndCASList = lookup(nameInList);
+			ArrayList<String> nameList = nameInList(skipRowsLook, nameInLook, lookFile);
+			for(String name : nameList) {
+				System.out.println(name);
+			}
+			
+			String[][] nameAndCASList = lookup(nameList);
 			output(nameAndCASList);
 			
 		}catch (IOException ex) {
@@ -57,20 +48,22 @@ public class Lookup
 		}
 	}
 	
-	private ArrayList<String> nameInList() throws IOException{
+	private ArrayList<String> nameInList(int skipRowsLook, int nameInCol, File lookFile) throws IOException{
 		ArrayList<String> nameInList = new ArrayList<String>();
-		FileInputStream fis = new FileInputStream("test_2.xlsx");
+		FileInputStream fis = new FileInputStream(lookFile);
 		XSSFWorkbook wb = new XSSFWorkbook(fis);
 		try {
-			XSSFSheet sheet = wb.getSheetAt(sheetNum);
+			XSSFSheet sheet = wb.getSheetAt(0);
 			for(Row row : sheet) {
-				try {
-					Cell cell = row.getCell(nameInCol);
-					String nameIn = cell.getStringCellValue().trim();
-					String name = nameIn.toLowerCase();
-					nameInList.add(name);
-				}catch(NullPointerException npe) {
-					nameInList.add("");
+				if(row.getRowNum()>skipRowsLook) {
+					try {
+						Cell cell = row.getCell(nameInCol);
+						String nameIn = cell.getStringCellValue().trim();
+						String name = nameIn.toLowerCase();
+						nameInList.add(name);
+					}catch(NullPointerException npe) {
+						nameInList.add("");
+					}
 				}
 			}
 		}catch(IllegalArgumentException e) {
@@ -109,7 +102,7 @@ public class Lookup
 			if(nameIn.length() == 0) {
 				found=true;
 			}
-			int bucket = getBucket(nameIn);
+			int bucket = BucketHash.getBucket(nameIn);
 			Row row = nameInSheet.getRow(bucket);
 			if(row.getCell(1)!=null && found==false) {
 				int lastCell = row.getLastCellNum();
@@ -146,6 +139,7 @@ public class Lookup
 		FileOutputStream fileOut = new FileOutputStream(dbFile);
 		wb.write(fileOut);
 		wb.close();
+		fileOut.close();
 		fis.close();
 		return foundNameAndCAS;
 	}
@@ -171,36 +165,13 @@ public class Lookup
 		wb.write(fileOut);
 		wb.close();
 		
-		String msg = "Finished!";
-		JOptionPane.showMessageDialog(null, msg);
+		JOptionPane.showMessageDialog(null, "Finished!");
+		System.exit(0);
 	}
 
-
-	private int getBucket(String nameIn) {
-		int hashValue = hashFunction(nameIn);
-		int bucket = hashValue % N_BUCKETS;
-		return bucket;
-	}
-	
-	private int hashFunction(String nameIn) {
-		int hash = 0;
-		String name = nameIn.toUpperCase();
-		if (name.length() >7) {
-			for(int i=0; i<7; i++) {
-				hash += name.charAt(i)*17;
-			}
-		}
-		else {
-			for (int i=0; i<name.length(); i++) {
-				hash+= name.charAt(i);
-			}
-		}
-		return hash;
-	}
-
-
+/*
     public static void main(String[] args )
     {
         new Lookup().run();
-    }
+    }*/
 }
