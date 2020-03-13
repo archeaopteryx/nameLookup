@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
@@ -18,20 +19,25 @@ public class ManuUpdate {
 		try {
 			updater(nameIn, nameOut, cas);
 		} catch(FileNotFoundException e) {
-			JOptionPane.showMessageDialog(null, "Database file was not found");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, "Database file not found");
 			System.exit(0);
 		}
 	}
 	
 	private static void updater(String nameIn, String nameOut, String cas)  throws FileNotFoundException {
-		String dbFile = "nameLookupDB.xlsx";
+		//String dbFile = "nameLookupDB.xlsx";
+		String dbFile = DBconfig.getDBLocation();
 		FileInputStream fis = new FileInputStream(dbFile);
 		
 		try {
 			XSSFWorkbook wb = new XSSFWorkbook(fis);
-			XSSFSheet nameInSheet = wb.getSheetAt(0);
-			XSSFSheet nameOutSheet = wb.getSheetAt(1);
-			XSSFSheet casSheet = wb.getSheetAt(2);
+			int origIndex = wb.getSheetIndex("Sheet1");
+			int findNameIndex = wb.getSheetIndex("Sheet2");
+			int findCasIndex = wb.getSheetIndex("Sheet3");
+			XSSFSheet nameInSheet = wb.getSheetAt(origIndex);
+			XSSFSheet nameOutSheet = wb.getSheetAt(findNameIndex);
+			XSSFSheet casSheet = wb.getSheetAt(findCasIndex);
 			
 			int bucket = BucketHash.getBucket(nameIn);
 			Row row = nameInSheet.getRow(bucket);
@@ -65,8 +71,10 @@ public class ManuUpdate {
 			fos.close();
 			fis.close();
 			JOptionPane.showMessageDialog(null, "Finished updating");
+			System.exit(0);
 		}catch(IOException e) {
-			JOptionPane.showMessageDialog(null,"IOException");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, "IOException");
 		}
 		
 	}

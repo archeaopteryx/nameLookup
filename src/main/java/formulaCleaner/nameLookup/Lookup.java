@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 //import java.util.List;
 //import java.util.ListIterator;
+import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
@@ -30,25 +31,23 @@ public class Lookup
 	static final int NAME_INDEX = 0;
 	static final int CAS_INDEX = 1;
 	private final String OUT_DIR = System.getProperty("user.dir");
-	private final String IN_FILE = "fileIn";
+	private String IN_FILE = "fileIn";
 
 	public Lookup(int skipRowsLook, int nameInLook, File lookFile) {
 		try {
-			ArrayList<String> nameList = nameInList(skipRowsLook, nameInLook, lookFile);
-			for(String name : nameList) {
-				System.out.println(name);
-			}
-			
+			ArrayList<String> nameList = nameInList(skipRowsLook, nameInLook, lookFile);			
 			String[][] nameAndCASList = lookup(nameList);
 			output(nameAndCASList);
 			
-		}catch (IOException ex) {
-			System.out.println(ex.getMessage());
-			throw new RuntimeException(ex.getMessage());
+		}catch (IOException e) {
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
 	private ArrayList<String> nameInList(int skipRowsLook, int nameInCol, File lookFile) throws IOException{
+		IN_FILE = lookFile.getName();
 		ArrayList<String> nameInList = new ArrayList<String>();
 		FileInputStream fis = new FileInputStream(lookFile);
 		XSSFWorkbook wb = new XSSFWorkbook(fis);
@@ -67,7 +66,8 @@ public class Lookup
 				}
 			}
 		}catch(IllegalArgumentException e) {
-			JOptionPane.showMessageDialog(null, "Sheet does not exist! Exiting...");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, "Sheet for Name-In workbook does not exist");
 			System.exit(0);
 		}finally {
 			wb.close();
@@ -85,13 +85,16 @@ public class Lookup
 	private String[][] lookup (ArrayList<String> namesIn) throws IOException {
 		int numberEntries = namesIn.size();
 		String[][] foundNameAndCAS = new String[numberEntries][2];
-		//String dbFile = Settings.getDBLocation();
-		String dbFile = "nameLookupDB.xlsx";
+		String dbFile = DBconfig.getDBLocation();
+		//String dbFile = "nameLookupDB.xlsx";
 		FileInputStream fis = new FileInputStream(dbFile);
 		XSSFWorkbook wb = new XSSFWorkbook(fis);
-		XSSFSheet nameInSheet = wb.getSheetAt(0);
-		XSSFSheet nameSheet = wb.getSheetAt(1);
-		XSSFSheet casSheet = wb.getSheetAt(2);
+		int origIndex = wb.getSheetIndex("Sheet1");
+		int findNameIndex = wb.getSheetIndex("Sheet2");
+		int findCasIndex = wb.getSheetIndex("Sheet3");
+		XSSFSheet nameInSheet = wb.getSheetAt(origIndex);
+		XSSFSheet nameSheet = wb.getSheetAt(findNameIndex);
+		XSSFSheet casSheet = wb.getSheetAt(findCasIndex);
 		int counter=-1;
 		boolean found;
 		for(String nameIn : namesIn) {

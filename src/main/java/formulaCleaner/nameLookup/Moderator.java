@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 public class Moderator {
 	
 	public void run() {
+		DBconfig.checkSettingsFile();
 		
 		NameLookupGUI input = new NameLookupGUI();
 		int skipRowsLook = input.get_skipRowsLook();
@@ -20,8 +21,6 @@ public class Moderator {
 		String casManu = input.get_casManu();
 		File lookFile = input.get_lookFile();
 		File sourceFile = input.get_sourceFile();
-		
-		System.out.println(nameInManu + " "+ nameOutManu +" "+ casManu);
 		
 		int lookTab = checkLookTab(skipRowsLook, nameInLook, lookFile);
 		int manuTab = checkManuTab(nameInManu, nameOutManu, casManu);

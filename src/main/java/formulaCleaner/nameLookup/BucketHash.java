@@ -1,7 +1,7 @@
 package formulaCleaner.nameLookup;
 
 public class BucketHash {
-	private static final int N_BUCKETS = 100;
+	static final int N_BUCKETS = 100;
 	
 	static int hashFunction(String nameIn) {
 		int hash = 0;

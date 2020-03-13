@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
-import javax.swing.JOptionPane;
+//import javax.swing.JOptionPane;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -27,9 +28,7 @@ public class FragLookup {
 			}
 		}
 		
-		System.out.println("looking up "+ nameIn);
 		String searchName = nameIn.replaceAll(" ", "+");
-		System.out.println(searchName);
 		String urlBase = "http://www.thegoodscentscompany.com/search3.php?qName=";
 		String startURL = urlBase+searchName;
 		SilentDriver driver = new SilentDriver(BrowserVersion.CHROME, true);
@@ -39,7 +38,6 @@ public class FragLookup {
 		String[] values = {"",""};
 		String directLookup ="";
 		if(driver.findElementsById("tableList2").size()==0) {
-			System.out.println("null!");
 			driver.close();
 			return values;
 		}
@@ -51,7 +49,8 @@ public class FragLookup {
 			String[] components = ref.split("[']");
 			directLookup += components[1];
 		} catch (NullPointerException e) {
-			System.out.println("Something went wrong with the first step of search");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.WARNING, "Something went wrong with the first step of search for "+nameIn);
 		} finally {
 			driver.close();
 		}
@@ -73,7 +72,8 @@ public class FragLookup {
 				}
 			}
 		} catch(NullPointerException e) {
-			System.out.println("Something went wrong on second step of search");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.WARNING, e.toString());
 		} finally {
 			nextDriver.close();
 		}
@@ -84,10 +84,10 @@ public class FragLookup {
 		try {
 			Thread.sleep(200);
 		}
-		catch (InterruptedException ex){
-			String msg =ex.getMessage();
-			JOptionPane.showMessageDialog(null, msg);
-			throw new RuntimeException(msg);
+		catch (InterruptedException e){
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.WARNING, e.toString());
+			throw new RuntimeException(e.toString());
 		}
 	}
 	

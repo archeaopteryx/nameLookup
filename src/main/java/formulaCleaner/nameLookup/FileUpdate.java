@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
@@ -15,16 +16,17 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class FileUpdate {
-	private static final int ORIG_INDEX = 0;
-	private static final int FIND_NAME_INDEX = 1;
-	private static final int FIND_CAS_INDEX = 2;
+	private int origIndex = 0;
+	private int findNameIndex = 1;
+	private int findCasIndex = 2;
 	
 	FileUpdate(int skip, int nameIn, int nameOut, int cas, File file) {
 		try {
 			ArrayList<String[]> valueList = getList(skip, nameIn, nameOut, cas, file);
 			updater(valueList);
 		}catch (FileNotFoundException e) {
-			System.out.println("file not found exception");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
 		}
 		
 	}
@@ -34,16 +36,19 @@ public class FileUpdate {
 		ArrayList<String[]> valuesList = new ArrayList<String[]>();
 		try {
 			XSSFWorkbook wb = new XSSFWorkbook(fis);
-			XSSFSheet sheet = wb.getSheetAt(0);
+			origIndex = wb.getSheetIndex("Sheet1");
+			findNameIndex = wb.getSheetIndex("Sheet2");
+			findCasIndex = wb.getSheetIndex("Sheet3");
+			XSSFSheet sheet = wb.getSheetAt(origIndex);
 			int lastRow = sheet.getLastRowNum();
 			for (int i = skip; i< lastRow-skip; i++) {
 				String[] values = new String[3];
 				Row row = sheet.getRow(i);
 				String testCell = row.getCell(nameIn).getStringCellValue();
 				if (testCell != null && testCell.length()>0) {
-					values[ORIG_INDEX] = row.getCell(nameIn).getStringCellValue();
-					values[FIND_NAME_INDEX] = row.getCell(nameOut).getStringCellValue();
-					values[FIND_CAS_INDEX] = row.getCell(cas).getStringCellValue();
+					values[origIndex] = row.getCell(nameIn).getStringCellValue();
+					values[findNameIndex] = row.getCell(nameOut).getStringCellValue();
+					values[findCasIndex] = row.getCell(cas).getStringCellValue();
 					valuesList.add(values);
 				}
 			}
@@ -51,15 +56,16 @@ public class FileUpdate {
 			fis.close();
 			return valuesList;
 		}catch(IOException e) {
-			System.out.println("IOException");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
 		}
 		return null;
 	}
 	
 	private void updater(ArrayList<String[]> valueList) throws FileNotFoundException {
-		String dbFile = "nameLookupDB.xlsx";
+		//String dbFile = "nameLookupDB.xlsx";
+		String dbFile = DBconfig.getDBLocation();
 		FileInputStream fis = new FileInputStream(dbFile);
-		//int len = valueList.size();
 		try {
 			XSSFWorkbook wb = new XSSFWorkbook(fis);
 			XSSFSheet nameInSheet = wb.getSheetAt(0);
@@ -67,31 +73,31 @@ public class FileUpdate {
 			XSSFSheet casSheet = wb.getSheetAt(2);
 			
 			for(String[] value : valueList) {
-				if (value[ORIG_INDEX] == null) System.exit(0); //always exiting, npe
-				int bucket = BucketHash.getBucket(value[ORIG_INDEX]);
+				if (value[origIndex] == null) System.exit(0); 
+				int bucket = BucketHash.getBucket(value[origIndex]);
 				Row row = nameInSheet.getRow(bucket);
 				Row nameOutRow = nameOutSheet.getRow(bucket);
 				Row casRow = casSheet.getRow(bucket);
 				int numCells = row.getPhysicalNumberOfCells(); 
 				if (numCells == 1) {
-					row.createCell(numCells, CellType.STRING).setCellValue(value[ORIG_INDEX]);
-					nameOutRow.createCell(numCells).setCellValue(value[FIND_NAME_INDEX]);
-					casRow.createCell(numCells).setCellValue(value[FIND_CAS_INDEX]);
+					row.createCell(numCells, CellType.STRING).setCellValue(value[origIndex]);
+					nameOutRow.createCell(numCells).setCellValue(value[findNameIndex]);
+					casRow.createCell(numCells).setCellValue(value[findCasIndex]);
 				}
 				else{
 					boolean found = false;
 					for(int j=1; j<numCells; j++) {
-						if(row.getCell(j).getStringCellValue().equals(value[ORIG_INDEX])) {
-							nameOutRow.getCell(j).setCellValue(value[FIND_NAME_INDEX]);
-							casRow.getCell(j).setCellValue(value[FIND_CAS_INDEX]);
+						if(row.getCell(j).getStringCellValue().equals(value[origIndex])) {
+							nameOutRow.getCell(j).setCellValue(value[findNameIndex]);
+							casRow.getCell(j).setCellValue(value[findCasIndex]);
 							found = true;
 							break;
 						}
 					}
 					if (found == false) {
-						row.createCell(numCells).setCellValue(value[ORIG_INDEX]);
-						nameOutRow.createCell(numCells).setCellValue(value[FIND_NAME_INDEX]);
-						casRow.createCell(numCells).setCellValue(value[FIND_CAS_INDEX]);
+						row.createCell(numCells).setCellValue(value[origIndex]);
+						nameOutRow.createCell(numCells).setCellValue(value[findNameIndex]);
+						casRow.createCell(numCells).setCellValue(value[findCasIndex]);
 					}
 				}	
 			}
@@ -102,8 +108,9 @@ public class FileUpdate {
 			fis.close();
 			JOptionPane.showMessageDialog(null, "Finished updating");
 			System.exit(0);
-		}catch(IOException ex) {
-			System.out.println("IO Exception");
+		}catch(IOException e) {
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
 		}
 		
 	}

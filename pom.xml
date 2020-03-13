@@ -4,7 +4,7 @@
 
   <groupId>formulaCleaner</groupId>
   <artifactId>nameLookup</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>nameLookup</name>
@@ -52,4 +52,34 @@
     	<version>2.33.2</version>
     </dependency>
   </dependencies>
+  
+  <build>
+  <plugins>
+  	<plugin>
+  		<groupId>org.apache.maven.plugins</groupId>
+  		<artifactId>maven-assembly-plugin</artifactId>
+  		<version>3.2.0</version>
+  		<configuration>
+  			<descriptorRefs>
+  				<descriptorRef>jar-with-dependencies</descriptorRef>
+  			</descriptorRefs>
+  			<archive>
+  				<manifest>
+  					<mainClass>
+  						formulaCleaner.nameLookup.Moderator
+  					</mainClass>
+  				</manifest>
+  				</archive>
+  			</configuration>
+  			<executions>
+  				<execution>
+  					<phase>package</phase>
+  					<goals>
+  						<goal>single</goal>
+  					</goals>
+  				</execution>
+  			</executions>
+  		</plugin>
+  	</plugins>
+  </build>
 </project>
