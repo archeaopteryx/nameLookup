@@ -1,6 +1,15 @@
 package formulaCleaner.nameLookup;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+//import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
@@ -8,6 +17,37 @@ public class Moderator {
 	
 	public void run() {
 		DBconfig.checkSettingsFile();
+		File db = new File(DBconfig.getDBLocation());
+		if(!db.exists()) {
+			try {
+				WatchService watcher = FileSystems.getDefault().newWatchService();
+				//Path path = Paths.get(System.getProperty("user.dir"));
+				Path path = Paths.get(DBconfig.getDBPath());
+				path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
+				WatchKey key = null;
+				DBconfig.initializeDB();
+				File f = new File("Hello.txt");
+				if(!f.exists()) {
+					while((key = watcher.take()) != null) {
+						key = watcher.take();
+						File trigger = new File("Hello.txt");
+						if(trigger.exists()) {
+							key.cancel();
+							key = null;
+						}
+						key.reset();
+					}
+				}
+				
+			} catch (IOException e) {
+				LoggerWrapper.getInstance();
+				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+			} catch (InterruptedException e) {
+				LoggerWrapper.getInstance();
+				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+			}
+		}
+		
 		
 		NameLookupGUI input = new NameLookupGUI();
 		int skipRowsLook = input.get_skipRowsLook();

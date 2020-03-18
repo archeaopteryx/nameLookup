@@ -8,10 +8,11 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.logging.Level;
 
-import javax.swing.JOptionPane;
+//import javax.swing.JOptionPane;
 
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -32,7 +33,9 @@ public class DBconfig {
 			checkWindows();
 		}
 		else {
-			JOptionPane.showMessageDialog(null,"unsupported os");
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.INFO, "Unsupported OS");
+			System.exit(0);
 		}
 	}
 	
@@ -46,13 +49,13 @@ public class DBconfig {
 		}
 		else {
 			newSettingsFile(filePath, defaultLocation);
-			try {
+			/*try {
 				initializeDB(defaultLocation);
 			}catch(IOException e) {
 				LoggerWrapper.getInstance();
 				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
 				JOptionPane.showMessageDialog(null,"Something went wrong creating the database file");
-			}
+			}*/
 		}
 	}
 	
@@ -65,7 +68,7 @@ public class DBconfig {
 		if (dir.exists() && setFile.exists()) {
 			return;
 		}
-		else if (dir.exists() && !setFile.exists()) {
+		/*else if (dir.exists() && !setFile.exists()) {
 			newSettingsFile(path, defaultLocation);
 			try {
 				initializeDB(defaultLocation);
@@ -74,7 +77,7 @@ public class DBconfig {
 				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
 				JOptionPane.showMessageDialog(null,"Something went wrong creating the database file");
 			}
-		}
+		}*/
 		else {
 			new File(home+LINUX_DIR).mkdir();
 			newSettingsFile(path, defaultLocation);
@@ -102,7 +105,25 @@ public class DBconfig {
 		return null;
 	}
 	
-	static void initializeDB(String defaultLoc) throws IOException{
+	static String getDBPath() {
+		String dbLoc = getDBLocation();
+		String dbPath = "";
+		if(isNix()) {
+			for(int i=0; i<dbLoc.lastIndexOf("/"); i++) {
+				dbPath+= dbLoc.charAt(i);
+			}
+		}
+		if(isWin()) {
+			for(int i=0; i<dbLoc.lastIndexOf("\\"); i++) {
+				dbPath+=dbLoc.charAt(i);
+			}
+		}
+		return dbPath;
+	}
+	
+	
+	static void initializeDB(){
+		String defaultLoc = getDBLocation();
 		XSSFWorkbook wb = new XSSFWorkbook();
 		XSSFSheet nameInSheet = wb.createSheet("Sheet1");
 		for(int i=0; i < BucketHash.N_BUCKETS; i++) {
@@ -123,11 +144,24 @@ public class DBconfig {
 		try {
 			fos = new FileOutputStream(defaultLoc);
 			wb.write(fos);
+			wb.close();
 		} catch (FileNotFoundException e) {
 			LoggerWrapper.getInstance();
 			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+		} catch (IOException e) {
+			LoggerWrapper.getInstance();
+			LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+		} 
+		try {
+			PrintWriter wr = new PrintWriter (
+					new BufferedWriter ( 
+							new FileWriter("Hello.txt")));
+			wr.println("hello world!");
+			wr.close();
 		}
-		wb.close();
+		catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	static void update(String newPath) {
