@@ -2,8 +2,13 @@ package formulaCleaner.nameLookup;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 //import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.logging.Level;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -101,6 +106,8 @@ public class NameLookupGUI extends JPanel{
 		
 		JButton cancelBtn = cancelButton();
 		JButton submitBtn = submissionButton();
+		JButton updateBtn = updateDB();
+		
 		GroupLayout layout = new GroupLayout(basicBtns);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
@@ -108,9 +115,11 @@ public class NameLookupGUI extends JPanel{
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(submitBtn)
+						.addComponent(updateBtn)
 						.addComponent(cancelBtn)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(submitBtn)
+				.addComponent(updateBtn)
 				.addComponent(cancelBtn));
 
 		container.add(tabs);
@@ -351,6 +360,32 @@ public class NameLookupGUI extends JPanel{
 			}
 		});
 		return submitButton;
+	}
+	
+	private JButton updateDB() {
+		JButton updateButton = new JButton("Database");
+		updateButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File dir = new File(System.getProperty("user.dir"));
+				JFileChooser chooser = new JFileChooser(dir);
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("Excel spreadsheets", "xlsx");
+				chooser.setFileFilter(filter);
+				int result = chooser.showOpenDialog(null);
+				if(result == JFileChooser.APPROVE_OPTION) {
+					File newDB = chooser.getSelectedFile();
+					File settingsFile = new File(DBconfig.getSettingsFile());
+					try {
+						PrintWriter wr = new PrintWriter(new BufferedWriter(new FileWriter(settingsFile, false)));
+						wr.println(newDB.getAbsolutePath());
+						wr.close();
+					} catch (IOException e1) {
+						LoggerWrapper.getInstance();
+						LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
+					}
+				}
+			}
+		});
+		return updateButton;
 	}
 	
 	private int alphaToNum(String alpha) {

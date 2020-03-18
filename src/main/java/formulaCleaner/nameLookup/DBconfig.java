@@ -49,13 +49,6 @@ public class DBconfig {
 		}
 		else {
 			newSettingsFile(filePath, defaultLocation);
-			/*try {
-				initializeDB(defaultLocation);
-			}catch(IOException e) {
-				LoggerWrapper.getInstance();
-				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
-				JOptionPane.showMessageDialog(null,"Something went wrong creating the database file");
-			}*/
 		}
 	}
 	
@@ -68,20 +61,20 @@ public class DBconfig {
 		if (dir.exists() && setFile.exists()) {
 			return;
 		}
-		/*else if (dir.exists() && !setFile.exists()) {
-			newSettingsFile(path, defaultLocation);
-			try {
-				initializeDB(defaultLocation);
-			}catch(IOException e) {
-				LoggerWrapper.getInstance();
-				LoggerWrapper.myLogger.log(Level.SEVERE, e.toString());
-				JOptionPane.showMessageDialog(null,"Something went wrong creating the database file");
-			}
-		}*/
 		else {
 			new File(home+LINUX_DIR).mkdir();
 			newSettingsFile(path, defaultLocation);
 		}
+	}
+	
+	static String getSettingsFile() {
+		if(isNix()) {
+			return System.getProperty("user.home")+LINUX_DIR+"/"+FNAME;
+		}
+		else if(isWin()) {
+			return System.getenv("APPDATA")+"\\"+FNAME;
+		}
+		return null;
 	}
 
 	static String getDBLocation() {
